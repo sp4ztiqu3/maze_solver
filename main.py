@@ -38,10 +38,43 @@ class Window:
     def close(self):
         self.is_running = False
 
+class Cell:
+    def __init__(self, point_tl, point_br, window):
+        self.has_left_wall = True
+        self.has_right_wall = True
+        self.has_top_wall = True
+        self.has_bottom_wall = True
+        self.x1 = point_tl.x
+        self.y1 = point_tl.y
+        self.x2 = point_br.x
+        self.y2 = point_br.y
+        self.window = window
+
+    def draw(self):
+        if self.has_left_wall:
+            line = Line(Point(self.x1, self.y1), Point(self.x1, self.y2))
+            self.window.draw_line(line, "black")
+        if self.has_right_wall:
+            line = Line(Point(self.x2, self.y1), Point(self.x2, self.y2))
+            self.window.draw_line(line, "black")
+        if self.has_top_wall:
+            line = Line(Point(self.x1, self.y1), Point(self.x2, self.y1))
+            self.window.draw_line(line, "black")
+        if self.has_bottom_wall:
+            line = Line(Point(self.x1, self.y2), Point(self.x2, self.y2))
+            self.window.draw_line(line, "black")
+
 def main():
     window = Window(800, 600)
-    line1 = Line(Point(100, 300), Point(300, 100))
-    window.draw_line(line1, "red")
+    cells = []
+    for i in range(10):
+        cells.append(Cell(Point(i*16, i*16), Point(i*16+16, i*16+16), window))
+        if i % 2:
+            cells[i].has_left_wall = False
+        if i % 3:
+            cells[i].has_top_wall = False
+
+        cells[i].draw()
     window.wait_for_close()
 
 main()
