@@ -64,6 +64,14 @@ class Cell:
             line = Line(Point(self.x1, self.y2), Point(self.x2, self.y2))
             self.window.draw_line(line, "black")
 
+    def draw_move(self, other, undo=False):
+        colour = "red"
+        if undo:
+            colour = "gray"
+
+        line = Line(Point((self.x1 + self.x2) / 2, (self.y1 + self.y2) / 2), Point((other.x1 + other.x2) / 2, (other.y1 + other.y2) / 2))
+        self.window.draw_line(line, colour)
+
 def main():
     window = Window(800, 600)
     cells = []
@@ -75,6 +83,9 @@ def main():
             cells[i].has_top_wall = False
 
         cells[i].draw()
+
+    cells[8].draw_move(cells[7])
+    cells[6].draw_move(cells[5], undo=True)
     window.wait_for_close()
 
 main()
