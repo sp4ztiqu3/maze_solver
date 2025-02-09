@@ -1,4 +1,5 @@
 from tkinter import Tk, BOTH, Canvas
+import time
 
 class Point:
     def __init__(self, x, y):
@@ -53,16 +54,16 @@ class Cell:
     def draw(self):
         if self.has_left_wall:
             line = Line(Point(self.x1, self.y1), Point(self.x1, self.y2))
-            self.window.draw_line(line, "black")
+            self.window.draw_line(line, "white")
         if self.has_right_wall:
             line = Line(Point(self.x2, self.y1), Point(self.x2, self.y2))
-            self.window.draw_line(line, "black")
+            self.window.draw_line(line, "white")
         if self.has_top_wall:
             line = Line(Point(self.x1, self.y1), Point(self.x2, self.y1))
-            self.window.draw_line(line, "black")
+            self.window.draw_line(line, "white")
         if self.has_bottom_wall:
             line = Line(Point(self.x1, self.y2), Point(self.x2, self.y2))
-            self.window.draw_line(line, "black")
+            self.window.draw_line(line, "white")
 
     def draw_move(self, other, undo=False):
         colour = "red"
@@ -72,20 +73,46 @@ class Cell:
         line = Line(Point((self.x1 + self.x2) / 2, (self.y1 + self.y2) / 2), Point((other.x1 + other.x2) / 2, (other.y1 + other.y2) / 2))
         self.window.draw_line(line, colour)
 
+class MazeCells:
+    def __init__(self, x1, y1, num_cols, num_rows, cell_size_x, cell_size_y, win):
+        self.x1 = x1
+        self.y1 = y1
+        self.num_rows = num_rows
+        self.num_cols = num_cols
+        self.cell_size_x = cell_size_x
+        self.cell_size_y = cell_size_y
+        self.window = win
+        self.cells = [[Cell(Point(0,0), Point(0,0), self.window) for _ in range(self.num_rows)] for _ in range(self.num_cols)]
+
+        self.create_cells()
+
+    def create_cells(self):
+        for x in range(self.num_cols):
+            for y in range(self.num_rows):
+                self.cells[x][y] = Cell(Point(self.x1 + x * self.cell_size_x, self.y1 + y * self.cell_size_y), Point(self.x1 + (x + 1) * self.cell_size_x, self.y1 + (y + 1) * self.cell_size_y), self.window)
+                if x % 2:
+                    self.cells[x][y].has_left_wall = False
+                if y % 2:
+                    self.cells[x][y].has_right_wall = False
+                if x % 3:
+                    self.cells[x][y].has_top_wall = False
+                if y % 3:
+                    self.cells[x][y].has_bottom_wall = False
+
+
+        for x in range(self.num_cols):
+            for y in range(self.num_rows):
+                self.cells[x][y].draw()
+
+                self.animate()
+
+    def animate(self):
+        self.window.redraw()
+        time.sleep(0.01)
+
 def main():
     window = Window(800, 600)
-    cells = []
-    for i in range(10):
-        cells.append(Cell(Point(i*16, i*16), Point(i*16+16, i*16+16), window))
-        if i % 2:
-            cells[i].has_left_wall = False
-        if i % 3:
-            cells[i].has_top_wall = False
-
-        cells[i].draw()
-
-    cells[8].draw_move(cells[7])
-    cells[6].draw_move(cells[5], undo=True)
+    test = MazeCells(8, 8, 48, 36, 16, 16, window)
     window.wait_for_close()
 
 main()
