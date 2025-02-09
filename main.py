@@ -99,7 +99,7 @@ class Maze:
         self.window = win
         self.cells = [[Cell(Point(0,0), Point(0,0), self.window) for _ in range(self.num_rows)] for _ in range(self.num_cols)]
         if seed == None:
-            self.seed = 0
+            self.seed = random.seed(0)
         else:
             self.seed = random.seed(seed)
 
@@ -118,6 +118,9 @@ class Maze:
 
         self.break_entrance_and_exit()
         self.break_walls_r(0, 0)
+        self.reset_cells_visited()
+
+        self.solve()
 
     def break_entrance_and_exit(self):
         self.cells[0][0].has_top_wall = False
@@ -167,10 +170,52 @@ class Maze:
                 self.cells[x][y+1].has_top_wall = False
                 self.break_walls_r(x, y+1)
 
+    def reset_cells_visited(self):
+        for x in range(self.num_cols):
+            for y in range(self.num_rows):
+                self.cells[x][y].visited = False
+
 
     def animate(self):
         self.window.redraw()
         time.sleep(0.01)
+
+
+    def solve_r(self, x, y):
+        self.animate()
+        self.cells[x][y].visited = True
+        if x == self.num_cols - 1 and y == self.num_rows - 1:
+            return True
+        if y < self.num_rows - 1 and self.cells[x][y].has_bottom_wall == False:
+            if self.cells[x][y+1].visited == False:
+                self.cells[x][y].draw_move(self.cells[x][y+1])
+                if self.solve_r(x, y+1):
+                    return True
+                self.cells[x][y].draw_move(self.cells[x][y+1], undo=True)
+        if x < self.num_cols - 1 and self.cells[x][y].has_right_wall == False:
+            if self.cells[x+1][y].visited == False:
+                self.cells[x][y].draw_move(self.cells[x+1][y])
+                if self.solve_r(x+1, y):
+                    return True
+                self.cells[x][y].draw_move(self.cells[x+1][y], undo=True)
+        if x > 0 and self.cells[x][y].has_left_wall == False:
+            if self.cells[x-1][y].visited == False:
+                self.cells[x][y].draw_move(self.cells[x-1][y])
+                if self.solve_r(x-1, y):
+                    return True
+                self.cells[x][y].draw_move(self.cells[x-1][y], undo=True)
+        if y > 0 and self.cells[x][y].has_top_wall == False:
+            if self.cells[x][y-1].visited == False:
+                self.cells[x][y].draw_move(self.cells[x][y-1])
+                if self.solve_r(x, y-1):
+                    return True
+                self.cells[x][y].draw_move(self.cells[x][y-1], undo=True)
+
+        return False
+
+
+    def solve(self):
+        return self.solve_r(0, 0)
 
 def main():
     window = Window(800, 600)
