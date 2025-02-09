@@ -1,6 +1,8 @@
 from tkinter import Tk, BOTH, Canvas
 import time
 
+CLEAR_COLOUR = "grey20"
+
 class Point:
     def __init__(self, x, y):
         self.x = x
@@ -55,15 +57,27 @@ class Cell:
         if self.has_left_wall:
             line = Line(Point(self.x1, self.y1), Point(self.x1, self.y2))
             self.window.draw_line(line, "white")
+        else:
+            line = Line(Point(self.x1, self.y1), Point(self.x1, self.y2))
+            self.window.draw_line(line, CLEAR_COLOUR)
         if self.has_right_wall:
             line = Line(Point(self.x2, self.y1), Point(self.x2, self.y2))
             self.window.draw_line(line, "white")
+        else:
+            line = Line(Point(self.x2, self.y1), Point(self.x2, self.y2))
+            self.window.draw_line(line, CLEAR_COLOUR)
         if self.has_top_wall:
             line = Line(Point(self.x1, self.y1), Point(self.x2, self.y1))
             self.window.draw_line(line, "white")
+        else:
+            line = Line(Point(self.x1, self.y1), Point(self.x2, self.y1))
+            self.window.draw_line(line, CLEAR_COLOUR)
         if self.has_bottom_wall:
             line = Line(Point(self.x1, self.y2), Point(self.x2, self.y2))
             self.window.draw_line(line, "white")
+        else:
+            line = Line(Point(self.x1, self.y2), Point(self.x2, self.y2))
+            self.window.draw_line(line, CLEAR_COLOUR)
 
     def draw_move(self, other, undo=False):
         colour = "red"
@@ -90,21 +104,23 @@ class MazeCells:
         for x in range(self.num_cols):
             for y in range(self.num_rows):
                 self.cells[x][y] = Cell(Point(self.x1 + x * self.cell_size_x, self.y1 + y * self.cell_size_y), Point(self.x1 + (x + 1) * self.cell_size_x, self.y1 + (y + 1) * self.cell_size_y), self.window)
-                if x % 2:
-                    self.cells[x][y].has_left_wall = False
-                if y % 2:
-                    self.cells[x][y].has_right_wall = False
-                if x % 3:
-                    self.cells[x][y].has_top_wall = False
-                if y % 3:
-                    self.cells[x][y].has_bottom_wall = False
-
 
         for x in range(self.num_cols):
             for y in range(self.num_rows):
                 self.cells[x][y].draw()
 
                 self.animate()
+
+        self.break_entrance_and_exit()
+
+    def break_entrance_and_exit(self):
+        self.cells[0][0].has_top_wall = False
+        self.cells[0][0].draw()
+        self.animate()
+
+        self.cells[self.num_cols - 1][self.num_rows - 1].has_bottom_wall = False
+        self.cells[self.num_cols - 1][self.num_rows - 1].draw()
+        self.animate()
 
     def animate(self):
         self.window.redraw()
