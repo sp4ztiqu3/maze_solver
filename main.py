@@ -1,5 +1,5 @@
 from tkinter import Tk, BOTH, Canvas
-import time
+import time, random
 
 CLEAR_COLOUR = "grey20"
 
@@ -52,6 +52,7 @@ class Cell:
         self.x2 = point_br.x
         self.y2 = point_br.y
         self.window = window
+        self.visited = False
 
     def draw(self):
         if self.has_left_wall:
@@ -87,8 +88,8 @@ class Cell:
         line = Line(Point((self.x1 + self.x2) / 2, (self.y1 + self.y2) / 2), Point((other.x1 + other.x2) / 2, (other.y1 + other.y2) / 2))
         self.window.draw_line(line, colour)
 
-class MazeCells:
-    def __init__(self, x1, y1, num_cols, num_rows, cell_size_x, cell_size_y, win):
+class Maze:
+    def __init__(self, x1, y1, num_cols, num_rows, cell_size_x, cell_size_y, win, seed=None):
         self.x1 = x1
         self.y1 = y1
         self.num_rows = num_rows
@@ -97,6 +98,10 @@ class MazeCells:
         self.cell_size_y = cell_size_y
         self.window = win
         self.cells = [[Cell(Point(0,0), Point(0,0), self.window) for _ in range(self.num_rows)] for _ in range(self.num_cols)]
+        if seed == None:
+            self.seed = 0
+        else:
+            self.seed = random.seed(seed)
 
         self.create_cells()
 
@@ -112,6 +117,7 @@ class MazeCells:
                 self.animate()
 
         self.break_entrance_and_exit()
+        self.break_walls_r(0, 0)
 
     def break_entrance_and_exit(self):
         self.cells[0][0].has_top_wall = False
@@ -122,13 +128,53 @@ class MazeCells:
         self.cells[self.num_cols - 1][self.num_rows - 1].draw()
         self.animate()
 
+    def break_walls_r(self, x, y):
+        self.cells[x][y].visited = True
+        while True:
+            to_visit = []
+            if x > 0:
+                if not self.cells[x-1][y].visited:
+                    to_visit.append("left")
+            if y > 0:
+                if not self.cells[x][y-1].visited:
+                    to_visit.append("up")
+            if x < self.num_cols-1:
+                if not self.cells[x+1][y].visited:
+                    to_visit.append("right")
+            if y < self.num_rows-1:
+                if not self.cells[x][y+1].visited:
+                    to_visit.append("down")
+            if len(to_visit) == 0:
+                self.cells[x][y].draw()
+                self.animate()
+                return
+            random.shuffle(to_visit)
+            dir = to_visit[0]
+            if dir == "left":
+                self.cells[x][y].has_left_wall = False
+                self.cells[x-1][y].has_right_wall = False
+                self.break_walls_r(x-1, y)
+            if dir == "up":
+                self.cells[x][y].has_top_wall = False
+                self.cells[x][y-1].has_bottom_wall = False
+                self.break_walls_r(x, y-1)
+            if dir == "right":
+                self.cells[x][y].has_right_wall = False
+                self.cells[x+1][y].has_left_wall = False
+                self.break_walls_r(x+1, y)
+            if dir == "down":
+                self.cells[x][y].has_bottom_wall = False
+                self.cells[x][y+1].has_top_wall = False
+                self.break_walls_r(x, y+1)
+
+
     def animate(self):
         self.window.redraw()
         time.sleep(0.01)
 
 def main():
     window = Window(800, 600)
-    test = MazeCells(8, 8, 48, 36, 16, 16, window)
+    test = Maze(8, 8, 20, 20, 16, 16, window)
     window.wait_for_close()
 
 main()
